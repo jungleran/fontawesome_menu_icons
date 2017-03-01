@@ -10,15 +10,15 @@
  */
 function fontawesome_menu_icons_uninstall() {
   // Remove link icons from menu_links table.
-  $result = db_query("SELECT mlid, options FROM {menu_links} WHERE options LIKE '%\"fa_icon\"%'");
+  $result = db_query("SELECT id, link__options FROM {menu_link_content_data} WHERE link__options LIKE '%\"fa_icon\"%'");
 
   foreach ($result as $record) {
-    $options = unserialize($record->options);
+    $options = unserialize($record->link__options);
     unset($options['fa_icon']);
 
-    db_query("UPDATE {menu_links} SET options = :options WHERE mlid = :mlid", array(
+    db_query("UPDATE {menu_link_content_data} SET link__options = :options WHERE id = :id", array(
       ':options' => serialize($options),
-      ':mlid'    => $record->mlid
+      ':id'      => $record->id
     ));
   }
 }
