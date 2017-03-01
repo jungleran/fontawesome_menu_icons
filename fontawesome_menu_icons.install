@@ -1,0 +1,24 @@
+<?php
+
+/**
+ * @file
+ * Install file for fontawesome_menu_icons module.
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+function fontawesome_menu_icons_uninstall() {
+  // Remove link icons from menu_links table.
+  $result = db_query("SELECT mlid, options FROM {menu_links} WHERE options LIKE '%\"fa_icon\"%'");
+
+  foreach ($result as $record) {
+    $options = unserialize($record->options);
+    unset($options['fa_icon']);
+
+    db_query("UPDATE {menu_links} SET options = :options WHERE mlid = :mlid", array(
+      ':options' => serialize($options),
+      ':mlid'    => $record->mlid
+    ));
+  }
+}
