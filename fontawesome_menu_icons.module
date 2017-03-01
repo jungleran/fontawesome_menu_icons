@@ -78,6 +78,80 @@ function fontawesome_menu_icons_menu_link_content_form_submit($form, FormStateIn
 }
 
 /**
+ * Implements hook_form_BASE_FORM_ID_alter().
+ */
+function fontawesome_menu_icons_form_menu_link_edit_alter(&$form, FormStateInterface $form_state, $form_id) {
+  /* @var \Drupal\Core\Menu\Form\MenuLinkDefaultForm $plugin_form */
+  $plugin_form = $form['#plugin_form'];
+  $values = $plugin_form->extractFormValues($form, $form_state);
+
+  $form['fa_icon'] = array(
+    '#type'          => 'textfield',
+    '#title'         => t('FontAwesome Icon'),
+    '#default_value' => !empty($values['options']['fa_icon']) ? $values['options']['fa_icon'] : '',
+    '#attributes'    => [
+      'class' => [
+        'fa-menu-iconpicker',
+      ],
+    ],
+  );
+
+  $form['actions']['submit']['#submit'][] = 'fontawesome_menu_icons_form_menu_link_edit_submit';
+
+  // FIXME 'libraries/fontawesome-iconpicker' doesn't work...
+  // @see https://www.drupal.org/docs/8/modules/libraries-api-8x/using-libraries-api-3x-as-a-module-developer
+  // $form['#attached']['library'][] = 'libraries/fontawesome-iconpicker';
+
+  $form['#attached']['library'][] = 'fontawesome_menu_icons/fontawesome-iconpicker';
+  $form['#attached']['library'][] = 'fontawesome_menu_icons/fontawesome-menu-icons';
+}
+
+/**
+ * Process the submitted form.
+ *
+ * @param array $form
+ * @param \Drupal\Core\Form\FormStateInterface $form_state
+ */
+function fontawesome_menu_icons_form_menu_link_edit_submit($form, FormStateInterface $form_state) {
+  $icon_field = $form_state->getValue('fa_icon');
+
+  // FIXME... find a better way to merge icon into menu link options...
+
+  /* @var \Drupal\Core\Menu\Form\MenuLinkDefaultForm $plugin_form */
+  $plugin_form = $form['#plugin_form'];
+
+  // Get link form values. (menu link ID is missing from array... why?)
+  $values = $plugin_form->extractFormValues($form, $form_state);
+
+  // Attempt to get menu link ID...
+  // First, we get the interface. submitConfigurationForm() returns wit it...
+  /* @var \Drupal\Core\Menu\MenuLinkInterface $interface */
+  $interface = $plugin_form->submitConfigurationForm($form, $form_state);
+  // After updating link, we get the menu link ID...
+  $values = $interface->updateLink($values, TRUE);
+
+  // If icon is set, we put it into options array.
+  if (!empty($icon_field)) {
+    $values['options']['fa_icon'] = Html::escape($icon_field);
+  }
+  else {
+    // If icon is not set, but it was added earlier, we need to remove it.
+    if (isset($values['options']['fa_icon'])) {
+      unset($values['options']['fa_icon']);
+    }
+  }
+
+  if (!empty($values['id'])) {
+    $query = \Drupal::database()->update('menu_tree');
+    $query->fields([
+      'options' => serialize($values['options']),
+    ]);
+    $query->condition('id', $values['id']);
+    $query->execute();
+  }
+}
+
+/**
  * Implements hook_link_alter().
  */
 function fontawesome_menu_icons_link_alter(&$variables) {
