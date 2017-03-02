@@ -81,14 +81,12 @@ function fontawesome_menu_icons_menu_link_content_form_submit($form, FormStateIn
  * Implements hook_form_BASE_FORM_ID_alter().
  */
 function fontawesome_menu_icons_form_menu_link_edit_alter(&$form, FormStateInterface $form_state, $form_id) {
-  /* @var \Drupal\Core\Menu\Form\MenuLinkDefaultForm $plugin_form */
-  $plugin_form = $form['#plugin_form'];
-  $values = $plugin_form->extractFormValues($form, $form_state);
+  $options = $form_state->getBuildInfo()['args'][0]->getOptions();
 
   $form['fa_icon'] = array(
     '#type'          => 'textfield',
     '#title'         => t('FontAwesome Icon'),
-    '#default_value' => !empty($values['options']['fa_icon']) ? $values['options']['fa_icon'] : '',
+    '#default_value' => !empty($options['fa_icon']) ? $options['fa_icon'] : '',
     '#attributes'    => [
       'class' => [
         'fa-menu-iconpicker',
@@ -113,24 +111,22 @@ function fontawesome_menu_icons_form_menu_link_edit_alter(&$form, FormStateInter
  * @param \Drupal\Core\Form\FormStateInterface $form_state
  */
 function fontawesome_menu_icons_form_menu_link_edit_submit($form, FormStateInterface $form_state) {
-  /* @var \Drupal\Core\Menu\Form\MenuLinkDefaultForm $plugin_form */
-  $plugin_form = $form['#plugin_form'];
-  $values = $plugin_form->extractFormValues($form, $form_state);
+  $options = $form_state->getBuildInfo()['args'][0]->getOptions();
 
   $fa_icon = $form_state->getValue('fa_icon');
 
   if (empty($fa_icon)) {
-    $values['options']['fa_icon'] = '';
+    $options['fa_icon'] = '';
   }
   else {
-    $values['options']['fa_icon'] = Html::escape($fa_icon);
+    $options['fa_icon'] = Html::escape($fa_icon);
   }
 
   $menu_link_id = $form_state->getValue('menu_link_id');
 
   /* @var \Drupal\Core\Menu\MenuLinkManager $menu_link_manager */
   // $menu_link_manager = \Drupal::service('plugin.manager.menu.link');
-  // $menu_link_manager->updateDefinition($menu_link_id, $values);
+  // $menu_link_manager->updateDefinition($menu_link_id, ['options' => $options]);
 
   // FIXME
   // Use $menu_link_manager->updateDefinition()... but it does not work...
@@ -140,7 +136,7 @@ function fontawesome_menu_icons_form_menu_link_edit_submit($form, FormStateInter
     // database table... why?!
     $query = \Drupal::database()->update('menu_tree');
     $query->fields([
-      'options' => serialize($values['options']),
+      'options' => serialize($options),
     ]);
     $query->condition('id', $menu_link_id);
     $query->execute();
