@@ -149,13 +149,13 @@ function fontawesome_menu_icons_form_menu_link_edit_submit($form, FormStateInter
     // Array key cannot contain dot in the config.
     $config_key = str_replace('.', '_', $menu_link_id);
 
-    if (empty($values['options']['fa_icon'])) {
+    if (empty($options['fa_icon'])) {
       if (isset($icons[$config_key])) {
         unset($icons[$config_key]);
       }
     }
     else {
-      $icons[$config_key] = $values['options']['fa_icon'];
+      $icons[$config_key] = $options['fa_icon'];
     }
 
     $config->set('menu_link_icons', $icons);
