@@ -175,6 +175,10 @@ function fontawesome_menu_icons_menu_links_discovered_alter(&$links) {
   $icons = $config->get('menu_link_icons');
 
   foreach ($links as &$link) {
+    if (empty($link['id'])) {
+      continue;
+    }
+
     // Array key cannot contain dot in the config.
     $config_key = str_replace('.', '_', $link['id']);
 
