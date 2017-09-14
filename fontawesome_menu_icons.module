@@ -62,12 +62,12 @@ function fontawesome_menu_icons_form_menu_link_content_form_alter(&$form, FormSt
  */
 function fontawesome_menu_icons_menu_link_content_form_submit($form, FormStateInterface $form_state) {
   $icon_field = $form_state->getValue('fa_icon');
-  $icon = empty($icon_field) ? '' : $icon_field;
 
   $options = [
-    'fa_icon' => Html::escape($icon),
+    'fa_icon' => !empty($icon_field) ? Html::escape($icon_field) : '',
   ];
 
+  /** @var \Drupal\menu_link_content\Entity\MenuLinkContent $menu_link */
   $menu_link = $form_state->getFormObject()->getEntity();
   $menu_link_options = $menu_link->link->first()->options;
 
@@ -94,7 +94,7 @@ function fontawesome_menu_icons_form_menu_link_edit_alter(&$form, FormStateInter
     ],
   );
 
-  $form['actions']['submit']['#submit'][] = 'fontawesome_menu_icons_form_menu_link_edit_submit';
+  $form['#submit'][] = 'fontawesome_menu_icons_form_menu_link_edit_submit';
 
   // FIXME 'libraries/fontawesome-iconpicker' doesn't work...
   // @see https://www.drupal.org/docs/8/modules/libraries-api-8x/using-libraries-api-3x-as-a-module-developer
@@ -115,25 +115,11 @@ function fontawesome_menu_icons_form_menu_link_edit_submit($form, FormStateInter
 
   $fa_icon = $form_state->getValue('fa_icon');
 
-  if (empty($fa_icon)) {
-    $options['fa_icon'] = '';
-  }
-  else {
-    $options['fa_icon'] = Html::escape($fa_icon);
-  }
+  $options['fa_icon'] = !empty($fa_icon) ? Html::escape($fa_icon) : '';
 
   $menu_link_id = $form_state->getValue('menu_link_id');
 
-  /* @var \Drupal\Core\Menu\MenuLinkManager $menu_link_manager */
-  // $menu_link_manager = \Drupal::service('plugin.manager.menu.link');
-  // $menu_link_manager->updateDefinition($menu_link_id, ['options' => $options]);
-
-  // FIXME
-  // Use $menu_link_manager->updateDefinition()... but it does not work...
   if (!empty($menu_link_id)) {
-    // FIXME
-    // After clearing the site's cache, the options were cleared from the
-    // database table... why?!
     $query = \Drupal::database()->update('menu_tree');
     $query->fields([
       'options' => serialize($options),
