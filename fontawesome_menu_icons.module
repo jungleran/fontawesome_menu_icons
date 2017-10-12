@@ -33,7 +33,7 @@ function fontawesome_menu_icons_form_menu_link_content_form_alter(&$form, FormSt
   $menu_link = $form_state->getFormObject()->getEntity();
   $menu_link_options = $menu_link->link->first()->options ?: [];
 
-  $form['fa_icon'] = array(
+  $form['fa_icon'] = [
     '#type'          => 'textfield',
     '#title'         => t('FontAwesome Icon'),
     '#default_value' => !empty($menu_link_options['fa_icon']) ? $menu_link_options['fa_icon'] : '',
@@ -42,7 +42,7 @@ function fontawesome_menu_icons_form_menu_link_content_form_alter(&$form, FormSt
         'fa-menu-iconpicker',
       ],
     ],
-  );
+  ];
 
   $form['actions']['submit']['#submit'][] = 'fontawesome_menu_icons_menu_link_content_form_submit';
 
@@ -58,9 +58,11 @@ function fontawesome_menu_icons_form_menu_link_content_form_alter(&$form, FormSt
  * Process the submitted form.
  *
  * @param array $form
+ *   Form Array.
  * @param \Drupal\Core\Form\FormStateInterface $form_state
+ *   Form State Interface.
  */
-function fontawesome_menu_icons_menu_link_content_form_submit($form, FormStateInterface $form_state) {
+function fontawesome_menu_icons_menu_link_content_form_submit(array $form, FormStateInterface $form_state) {
   $icon_field = $form_state->getValue('fa_icon');
 
   $options = [
@@ -83,7 +85,7 @@ function fontawesome_menu_icons_menu_link_content_form_submit($form, FormStateIn
 function fontawesome_menu_icons_form_menu_link_edit_alter(&$form, FormStateInterface $form_state, $form_id) {
   $options = $form_state->getBuildInfo()['args'][0]->getOptions();
 
-  $form['fa_icon'] = array(
+  $form['fa_icon'] = [
     '#type'          => 'textfield',
     '#title'         => t('FontAwesome Icon'),
     '#default_value' => !empty($options['fa_icon']) ? $options['fa_icon'] : '',
@@ -92,7 +94,7 @@ function fontawesome_menu_icons_form_menu_link_edit_alter(&$form, FormStateInter
         'fa-menu-iconpicker',
       ],
     ],
-  );
+  ];
 
   $form['#submit'][] = 'fontawesome_menu_icons_form_menu_link_edit_submit';
 
@@ -108,15 +110,14 @@ function fontawesome_menu_icons_form_menu_link_edit_alter(&$form, FormStateInter
  * Process the submitted form.
  *
  * @param array $form
+ *   Array Form.
  * @param \Drupal\Core\Form\FormStateInterface $form_state
+ *   Form Interface.
  */
-function fontawesome_menu_icons_form_menu_link_edit_submit($form, FormStateInterface $form_state) {
+function fontawesome_menu_icons_form_menu_link_edit_submit(array $form, FormStateInterface $form_state) {
   $options = $form_state->getBuildInfo()['args'][0]->getOptions();
-
   $fa_icon = $form_state->getValue('fa_icon');
-
   $options['fa_icon'] = !empty($fa_icon) ? Html::escape($fa_icon) : '';
-
   $menu_link_id = $form_state->getValue('menu_link_id');
 
   if (!empty($menu_link_id)) {
@@ -126,7 +127,6 @@ function fontawesome_menu_icons_form_menu_link_edit_submit($form, FormStateInter
     ]);
     $query->condition('id', $menu_link_id);
     $query->execute();
-
 
     $config_factory = \Drupal::configFactory();
     $config = $config_factory->getEditable('fontawesome_menu_icons.settings');
@@ -156,7 +156,6 @@ function fontawesome_menu_icons_menu_links_discovered_alter(&$links) {
   // After clearing the site's cache, the options were cleared from the
   // menu_tree database table (I'm not sure if this is a bug or normal
   // behaviour)... but we need to re-apply fa_icon on each menu link item.
-
   $config = \Drupal::config('fontawesome_menu_icons.settings');
   $icons = $config->get('menu_link_icons');
 

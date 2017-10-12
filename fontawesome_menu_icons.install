@@ -16,9 +16,9 @@ function fontawesome_menu_icons_uninstall() {
     $options = unserialize($record->link__options);
     unset($options['fa_icon']);
 
-    db_query("UPDATE {menu_link_content_data} SET link__options = :options WHERE id = :id", array(
+    db_query("UPDATE {menu_link_content_data} SET link__options = :options WHERE id = :id", [
       ':options' => serialize($options),
       ':id'      => $record->id
-    ));
+    ]);
   }
 }
