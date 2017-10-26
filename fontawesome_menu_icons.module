@@ -5,6 +5,7 @@
  * Contains fontawesome_menu_icons.module.
  */
 
+use Drupal\Core\Render\Markup;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Component\Render\FormattableMarkup;
@@ -44,6 +45,17 @@ function fontawesome_menu_icons_form_menu_link_content_form_alter(&$form, FormSt
     ],
   ];
 
+  $form['fa_icon_appearance'] = [
+    '#type'          => 'select',
+    '#title'         => t('FontAwesome Icon - Appearance'),
+    '#default_value' => !empty($menu_link_options['fa_icon_appearance']) ? $menu_link_options['fa_icon_appearance'] : 'before',
+    '#options'       => [
+      'before' => t('Before text'),
+      'after'  => t('After text'),
+      'only'   => t('Without text'),
+    ],
+  ];
+
   $form['actions']['submit']['#submit'][] = 'fontawesome_menu_icons_menu_link_content_form_submit';
 
   // FIXME 'libraries/fontawesome-iconpicker' doesn't work...
@@ -64,9 +76,11 @@ function fontawesome_menu_icons_form_menu_link_content_form_alter(&$form, FormSt
  */
 function fontawesome_menu_icons_menu_link_content_form_submit(array $form, FormStateInterface $form_state) {
   $icon_field = $form_state->getValue('fa_icon');
+  $icon_appearance = $form_state->getValue('fa_icon_appearance');
 
   $options = [
-    'fa_icon' => !empty($icon_field) ? Html::escape($icon_field) : '',
+    'fa_icon'            => !empty($icon_field) ? Html::escape($icon_field) : '',
+    'fa_icon_appearance' => !empty($icon_appearance) ? Html::escape($icon_appearance) : 'before',
   ];
 
   /** @var \Drupal\menu_link_content\Entity\MenuLinkContent $menu_link */
@@ -96,6 +110,17 @@ function fontawesome_menu_icons_form_menu_link_edit_alter(&$form, FormStateInter
     ],
   ];
 
+  $form['fa_icon_appearance'] = [
+    '#type'          => 'select',
+    '#title'         => t('FontAwesome Icon - Appearance'),
+    '#default_value' => !empty($options['fa_icon_appearance']) ? $options['fa_icon_appearance'] : 'before',
+    '#options'       => [
+      'before' => t('Before text'),
+      'after'  => t('After text'),
+      'only'   => t('Without text'),
+    ],
+  ];
+
   $form['#submit'][] = 'fontawesome_menu_icons_form_menu_link_edit_submit';
 
   // FIXME 'libraries/fontawesome-iconpicker' doesn't work...
@@ -116,9 +141,13 @@ function fontawesome_menu_icons_form_menu_link_edit_alter(&$form, FormStateInter
  */
 function fontawesome_menu_icons_form_menu_link_edit_submit(array $form, FormStateInterface $form_state) {
   $options = $form_state->getBuildInfo()['args'][0]->getOptions();
-  $fa_icon = $form_state->getValue('fa_icon');
-  $options['fa_icon'] = !empty($fa_icon) ? Html::escape($fa_icon) : '';
   $menu_link_id = $form_state->getValue('menu_link_id');
+
+  $fa_icon = $form_state->getValue('fa_icon');
+  $icon_appearance = $form_state->getValue('fa_icon_appearance');
+
+  $options['fa_icon'] = !empty($fa_icon) ? Html::escape($fa_icon) : '';
+  $options['fa_icon_appearance'] = !empty($icon_appearance) ? $icon_appearance : 'before';
 
   if (!empty($menu_link_id)) {
     $query = \Drupal::database()->update('menu_tree');
@@ -141,7 +170,10 @@ function fontawesome_menu_icons_form_menu_link_edit_submit(array $form, FormStat
       }
     }
     else {
-      $icons[$config_key] = $options['fa_icon'];
+      $icons[$config_key] = [
+        'icon'       => $options['fa_icon'],
+        'appearance' => $options['fa_icon_appearance'],
+      ];
     }
 
     $config->set('menu_link_icons', $icons);
@@ -168,7 +200,16 @@ function fontawesome_menu_icons_menu_links_discovered_alter(&$links) {
     $config_key = str_replace('.', '_', $link['id']);
 
     if (!empty($icons[$config_key])) {
-      $link['options']['fa_icon'] = $icons[$config_key];
+      // Array is the new storage format.
+      if (is_array($icons[$config_key])) {
+        $link['options']['fa_icon'] = !empty($icons[$config_key]['icon']) ? $icons[$config_key]['icon'] : '';
+        $link['options']['fa_icon_appearance'] = !empty($icons[$config_key]['appearance']) ? $icons[$config_key]['appearance'] : 'before';
+      }
+      // BC, legacy config (when appearance was not supported).
+      else {
+        $link['options']['fa_icon'] = !empty($icons[$config_key]) ? $icons[$config_key] : '';
+        $link['options']['fa_icon_appearance'] = 'before';
+      }
     }
   }
 }
@@ -179,10 +220,28 @@ function fontawesome_menu_icons_menu_links_discovered_alter(&$links) {
 function fontawesome_menu_icons_link_alter(&$variables) {
   if (!empty($variables['options']['fa_icon']) && empty($variables['options']['already_processed'])) {
     $class = $variables['options']['fa_icon'];
+    $appearance = !empty($variables['options']['fa_icon_appearance']) ? $variables['options']['fa_icon_appearance'] : 'before';
 
-    $variables['text'] = new FormattableMarkup('<i class="fa ' . $class . '"></i> @title', [
-      '@title' => $variables['text'],
-    ]);
+    switch ($appearance) {
+      case "only":
+        $variables['text'] = new FormattableMarkup('<i class="fa ' . $class . '"></i>', [
+          '@title' => $variables['text'],
+        ]);
+        break;
+
+      case "after":
+        $variables['text'] = new FormattableMarkup('@title <i class="fa ' . $class . '"></i>', [
+          '@title' => $variables['text'],
+        ]);
+        break;
+
+      case "before":
+      default:
+        $variables['text'] = new FormattableMarkup('<i class="fa ' . $class . '"></i> @title', [
+          '@title' => $variables['text'],
+        ]);
+        break;
+    }
 
     $variables['options']['already_processed'] = TRUE;
   }
