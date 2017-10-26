@@ -5,7 +5,6 @@
  * Contains fontawesome_menu_icons.module.
  */
 
-use Drupal\Core\Render\Markup;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Component\Render\FormattableMarkup;
@@ -147,7 +146,7 @@ function fontawesome_menu_icons_form_menu_link_edit_submit(array $form, FormStat
   $icon_appearance = $form_state->getValue('fa_icon_appearance');
 
   $options['fa_icon'] = !empty($fa_icon) ? Html::escape($fa_icon) : '';
-  $options['fa_icon_appearance'] = !empty($icon_appearance) ? $icon_appearance : 'before';
+  $options['fa_icon_appearance'] = !empty($icon_appearance) ? Html::escape($icon_appearance) : 'before';
 
   if (!empty($menu_link_id)) {
     $query = \Drupal::database()->update('menu_tree');
