@@ -190,13 +190,13 @@ function fontawesome_menu_icons_menu_links_discovered_alter(&$links) {
   $config = \Drupal::config('fontawesome_menu_icons.settings');
   $icons = $config->get('menu_link_icons');
 
-  foreach ($links as &$link) {
+  foreach ($links as $link_id => &$link) {
     if (empty($link['id'])) {
       continue;
     }
 
     // Array key cannot contain dot in the config.
-    $config_key = str_replace('.', '_', $link['id']);
+    $config_key = str_replace('.', '_', $link_id);
 
     if (!empty($icons[$config_key])) {
       // Array is the new storage format.
