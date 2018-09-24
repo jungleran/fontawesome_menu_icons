@@ -4,8 +4,8 @@ description: FontAwesome Menu Icons
 core: 8.x
 package: Menu
 dependencies:
-  - libraries
-  - fontawesome
-  - menu_ui
+  - libraries:libraries
+  - fontawesome:fontawesome
+  - drupal:menu_ui
 library_dependencies:
   - fontawesome-iconpicker
