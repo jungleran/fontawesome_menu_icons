@@ -21,8 +21,6 @@ function fontawesome_menu_icons_help($route_name, RouteMatchInterface $route_mat
       $output .= '<h3>' . t('About') . '</h3>';
       $output .= '<p>' . t('FontAwesome Menu Icons') . '</p>';
       return $output;
-
-    default:
   }
 }
 
