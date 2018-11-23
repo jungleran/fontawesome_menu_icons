@@ -245,7 +245,7 @@ function fontawesome_menu_icons_link_alter(&$variables) {
 
       case "before":
       default:
-        $variables['text'] = new FormattableMarkup('<i class="fa ' . $class . '" aria-hidden></i> 1 @title', [
+        $variables['text'] = new FormattableMarkup('<i class="fa ' . $class . '" aria-hidden></i> @title', [
           '@title' => $variables['text'],
         ]);
         break;
