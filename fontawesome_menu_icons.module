@@ -34,10 +34,10 @@ function fontawesome_menu_icons_form_menu_link_content_form_alter(&$form, FormSt
   $menu_link_options = $menu_link->link->first()->options ?: [];
 
   $form['fa_icon'] = [
-    '#type'          => 'textfield',
-    '#title'         => t('FontAwesome Icon'),
+    '#type' => 'textfield',
+    '#title' => t('FontAwesome Icon'),
     '#default_value' => !empty($menu_link_options['fa_icon']) ? $menu_link_options['fa_icon'] : '',
-    '#attributes'    => [
+    '#attributes' => [
       'class' => [
         'fa-menu-iconpicker',
       ],
@@ -45,13 +45,13 @@ function fontawesome_menu_icons_form_menu_link_content_form_alter(&$form, FormSt
   ];
 
   $form['fa_icon_appearance'] = [
-    '#type'          => 'select',
-    '#title'         => t('FontAwesome Icon - Appearance'),
+    '#type' => 'select',
+    '#title' => t('FontAwesome Icon - Appearance'),
     '#default_value' => !empty($menu_link_options['fa_icon_appearance']) ? $menu_link_options['fa_icon_appearance'] : 'before',
-    '#options'       => [
+    '#options' => [
       'before' => t('Before text'),
-      'after'  => t('After text'),
-      'only'   => t('Without text'),
+      'after' => t('After text'),
+      'only' => t('Without text'),
     ],
   ];
 
@@ -78,7 +78,7 @@ function fontawesome_menu_icons_menu_link_content_form_submit(array $form, FormS
   $icon_appearance = $form_state->getValue('fa_icon_appearance');
 
   $options = [
-    'fa_icon'            => !empty($icon_field) ? Html::escape($icon_field) : '',
+    'fa_icon' => !empty($icon_field) ? Html::escape($icon_field) : '',
     'fa_icon_appearance' => !empty($icon_appearance) ? Html::escape($icon_appearance) : 'before',
   ];
 
@@ -99,10 +99,10 @@ function fontawesome_menu_icons_form_menu_link_edit_alter(&$form, FormStateInter
   $options = $form_state->getBuildInfo()['args'][0]->getOptions();
 
   $form['fa_icon'] = [
-    '#type'          => 'textfield',
-    '#title'         => t('FontAwesome Icon'),
+    '#type' => 'textfield',
+    '#title' => t('FontAwesome Icon'),
     '#default_value' => !empty($options['fa_icon']) ? $options['fa_icon'] : '',
-    '#attributes'    => [
+    '#attributes' => [
       'class' => [
         'fa-menu-iconpicker',
       ],
@@ -110,13 +110,13 @@ function fontawesome_menu_icons_form_menu_link_edit_alter(&$form, FormStateInter
   ];
 
   $form['fa_icon_appearance'] = [
-    '#type'          => 'select',
-    '#title'         => t('FontAwesome Icon - Appearance'),
+    '#type' => 'select',
+    '#title' => t('FontAwesome Icon - Appearance'),
     '#default_value' => !empty($options['fa_icon_appearance']) ? $options['fa_icon_appearance'] : 'before',
-    '#options'       => [
+    '#options' => [
       'before' => t('Before text'),
-      'after'  => t('After text'),
-      'only'   => t('Without text'),
+      'after' => t('After text'),
+      'only' => t('Without text'),
     ],
   ];
 
@@ -170,7 +170,7 @@ function fontawesome_menu_icons_form_menu_link_edit_submit(array $form, FormStat
     }
     else {
       $icons[$config_key] = [
-        'icon'       => $options['fa_icon'],
+        'icon' => $options['fa_icon'],
         'appearance' => $options['fa_icon_appearance'],
       ];
     }
@@ -203,8 +203,7 @@ function fontawesome_menu_icons_menu_links_discovered_alter(&$links) {
       if (is_array($icons[$config_key])) {
         $link['options']['fa_icon'] = !empty($icons[$config_key]['icon']) ? $icons[$config_key]['icon'] : '';
         $link['options']['fa_icon_appearance'] = !empty($icons[$config_key]['appearance']) ? $icons[$config_key]['appearance'] : 'before';
-      }
-      // BC, legacy config (when appearance was not supported).
+      } // BC, legacy config (when appearance was not supported).
       else {
         $link['options']['fa_icon'] = !empty($icons[$config_key]) ? $icons[$config_key] : '';
         $link['options']['fa_icon_appearance'] = 'before';
@@ -246,12 +245,64 @@ function fontawesome_menu_icons_link_alter(&$variables) {
 
       case "before":
       default:
-        $variables['text'] = new FormattableMarkup('<i class="fa ' . $class . '" aria-hidden></i> @title', [
+        $variables['text'] = new FormattableMarkup('<i class="fa ' . $class . '" aria-hidden></i> 1 @title', [
           '@title' => $variables['text'],
         ]);
         break;
     }
 
     $variables['options']['already_processed'] = TRUE;
+  }
+}
+
+/**
+ * Implements hook_preprocess_menu().
+ */
+function fontawesome_menu_icons_preprocess_menu(&$variables, $hook) {
+  $items = !empty($variables['items']) ? $variables['items'] : [];
+
+  foreach ($items as $key => $item) {
+    if (empty($item['url'])) {
+      continue;
+    }
+
+    /** @var \Drupal\Core\Url $url */
+    $url = $item['url'];
+    $options = $url->getOptions();
+
+    if (!empty($options['fa_icon']) && empty($options['already_processed'])) {
+      $class = $options['fa_icon'];
+      $appearance = !empty($options['fa_icon_appearance']) ? $options['fa_icon_appearance'] : 'before';
+      $is_link = ($url->isRouted() && ($url->getRouteName() == '<nolink>')) ? FALSE : TRUE;
+
+      switch ($appearance) {
+        case "only":
+          if ($is_link) {
+            $variables['items'][$key]['attributes']['aria-label'] = $variables['title'];
+            $variables['items'][$key]['title'] = new FormattableMarkup('<i class="fa ' . $class . '" aria-hidden></i>', []);
+          }
+          else {
+            $variables['items'][$key]['title'] = new FormattableMarkup('<i class="fa ' . $class . '" aria-hidden title="@title"></i><span class="sr-only">@title</span>', [
+              '@title' => $variables['items'][$key]['title'],
+            ]);
+          }
+          break;
+
+        case "after":
+          $variables['items'][$key]['title'] = new FormattableMarkup('@title <i class="fa ' . $class . '" aria-hidden></i>', [
+            '@title' => $variables['items'][$key]['title'],
+          ]);
+          break;
+
+        case "before":
+        default:
+          $variables['items'][$key]['title'] = new FormattableMarkup('<i class="fa ' . $class . '" aria-hidden></i> @title', [
+            '@title' => $variables['items'][$key]['title'],
+          ]);
+          break;
+      }
+
+      $variables['items'][$key]['url']->setOption('already_processed', TRUE);
+    }
   }
 }
