@@ -21,6 +21,8 @@ function fontawesome_menu_icons_help($route_name, RouteMatchInterface $route_mat
       $output .= '<h3>' . t('About') . '</h3>';
       $output .= '<p>' . t('FontAwesome Menu Icons') . '</p>';
       return $output;
+
+    default:
   }
 }
 
@@ -257,50 +259,62 @@ function fontawesome_menu_icons_link_alter(&$variables) {
  * Implements hook_preprocess_menu().
  */
 function fontawesome_menu_icons_preprocess_menu(&$variables, $hook) {
-  $items = !empty($variables['items']) ? $variables['items'] : [];
+  if (!empty($variables['items'])) {
+    _fontawesome_menu_icons_preprocess_menu($variables['items']);
+  }
+}
 
-  foreach ($items as $key => $item) {
+function _fontawesome_menu_icons_preprocess_menu(&$items) {
+  foreach ($items as &$item) {
     if (empty($item['url'])) {
       continue;
     }
 
-    /** @var \Drupal\Core\Url $url */
-    $url = $item['url'];
-    $options = $url->getOptions();
+    _fontawesome_menu_icons_preprocess_menu_item($item);
 
-    if (!empty($options['fa_icon']) && empty($options['already_processed'])) {
-      $class = $options['fa_icon'];
-      $appearance = !empty($options['fa_icon_appearance']) ? $options['fa_icon_appearance'] : 'before';
-      $is_link = ($url->isRouted() && ($url->getRouteName() == '<nolink>')) ? FALSE : TRUE;
-
-      switch ($appearance) {
-        case "only":
-          if ($is_link) {
-            $variables['items'][$key]['attributes']['aria-label'] = $variables['title'];
-            $variables['items'][$key]['title'] = new FormattableMarkup('<i class="fa ' . $class . '" aria-hidden></i>', []);
-          }
-          else {
-            $variables['items'][$key]['title'] = new FormattableMarkup('<i class="fa ' . $class . '" aria-hidden title="@title"></i><span class="sr-only">@title</span>', [
-              '@title' => $variables['items'][$key]['title'],
-            ]);
-          }
-          break;
-
-        case "after":
-          $variables['items'][$key]['title'] = new FormattableMarkup('@title <i class="fa ' . $class . '" aria-hidden></i>', [
-            '@title' => $variables['items'][$key]['title'],
-          ]);
-          break;
-
-        case "before":
-        default:
-          $variables['items'][$key]['title'] = new FormattableMarkup('<i class="fa ' . $class . '" aria-hidden></i> @title', [
-            '@title' => $variables['items'][$key]['title'],
-          ]);
-          break;
-      }
-
-      $variables['items'][$key]['url']->setOption('already_processed', TRUE);
+    if (!empty($item['below'])) {
+      _fontawesome_menu_icons_preprocess_menu($item['below']);
     }
+  }
+}
+
+function _fontawesome_menu_icons_preprocess_menu_item(&$item) {
+  /** @var \Drupal\Core\Url $url */
+  $url = $item['url'];
+  $options = $url->getOptions();
+
+  if (!empty($options['fa_icon']) && empty($options['already_processed'])) {
+    $class = $options['fa_icon'];
+    $appearance = !empty($options['fa_icon_appearance']) ? $options['fa_icon_appearance'] : 'before';
+    $is_link = ($url->isRouted() && ($url->getRouteName() == '<nolink>')) ? FALSE : TRUE;
+
+    switch ($appearance) {
+      case "only":
+        if ($is_link) {
+          $item['attributes']['aria-label'] = $item['title'];
+          $item['title'] = new FormattableMarkup('<i class="fa ' . $class . '" aria-hidden></i>', []);
+        }
+        else {
+          $item['title'] = new FormattableMarkup('<i class="fa ' . $class . '" aria-hidden title="@title"></i><span class="sr-only">@title</span>', [
+            '@title' => $item['title'],
+          ]);
+        }
+        break;
+
+      case "after":
+        $item['title'] = new FormattableMarkup('@title <i class="fa ' . $class . '" aria-hidden></i>', [
+          '@title' => $item['title'],
+        ]);
+        break;
+
+      case "before":
+      default:
+        $item['title'] = new FormattableMarkup('<i class="fa ' . $class . '" aria-hidden></i> @title', [
+          '@title' => $item['title'],
+        ]);
+        break;
+    }
+
+    $item['url']->setOption('already_processed', TRUE);
   }
 }
