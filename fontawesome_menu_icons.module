@@ -227,10 +227,10 @@ function fontawesome_menu_icons_link_alter(&$variables) {
       case "only":
         if ($is_link) {
           $variables['options']['attributes']['aria-label'] = $variables['text'];
-          $variables['text'] = new FormattableMarkup('<i class="fa ' . $class . '" aria-hidden></i>', []);
+          $variables['text'] = new FormattableMarkup('<i class="fa ' . $class . '" aria-hidden="true"></i>', []);
         }
         else {
-          $variables['text'] = new FormattableMarkup('<i class="fa ' . $class . '" aria-hidden title="@title"></i><span class="sr-only">@title</span>', [
+          $variables['text'] = new FormattableMarkup('<i class="fa ' . $class . '" aria-hidden="true" title="@title"></i><span class="sr-only">@title</span>', [
             '@title' => $variables['text'],
           ]);
         }
@@ -238,14 +238,14 @@ function fontawesome_menu_icons_link_alter(&$variables) {
         break;
 
       case "after":
-        $variables['text'] = new FormattableMarkup('@title <i class="fa ' . $class . '" aria-hidden></i>', [
+        $variables['text'] = new FormattableMarkup('@title <i class="fa ' . $class . '" aria-hidden="true"></i>', [
           '@title' => $variables['text'],
         ]);
         break;
 
       case "before":
       default:
-        $variables['text'] = new FormattableMarkup('<i class="fa ' . $class . '" aria-hidden></i> @title', [
+        $variables['text'] = new FormattableMarkup('<i class="fa ' . $class . '" aria-hidden="true"></i> @title', [
           '@title' => $variables['text'],
         ]);
         break;
@@ -292,24 +292,24 @@ function _fontawesome_menu_icons_preprocess_menu_item(&$item) {
       case "only":
         if ($is_link) {
           $item['attributes']['aria-label'] = $item['title'];
-          $item['title'] = new FormattableMarkup('<i class="fa ' . $class . '" aria-hidden></i>', []);
+          $item['title'] = new FormattableMarkup('<i class="fa ' . $class . '" aria-hidden="true"></i>', []);
         }
         else {
-          $item['title'] = new FormattableMarkup('<i class="fa ' . $class . '" aria-hidden title="@title"></i><span class="sr-only">@title</span>', [
+          $item['title'] = new FormattableMarkup('<i class="fa ' . $class . '" aria-hidden="true" title="@title"></i><span class="sr-only">@title</span>', [
             '@title' => $item['title'],
           ]);
         }
         break;
 
       case "after":
-        $item['title'] = new FormattableMarkup('@title <i class="fa ' . $class . '" aria-hidden></i>', [
+        $item['title'] = new FormattableMarkup('@title <i class="fa ' . $class . '" aria-hidden="true"></i>', [
           '@title' => $item['title'],
         ]);
         break;
 
       case "before":
       default:
-        $item['title'] = new FormattableMarkup('<i class="fa ' . $class . '" aria-hidden></i> @title', [
+        $item['title'] = new FormattableMarkup('<i class="fa ' . $class . '" aria-hidden="true"></i> @title', [
           '@title' => $item['title'],
         ]);
         break;
