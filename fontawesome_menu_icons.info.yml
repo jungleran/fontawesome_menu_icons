@@ -1,6 +1,6 @@
 name: FontAwesome Menu Icons
 type: module
-description: FontAwesome Menu Icons
+description: FontAwesome Menu Icons.
 core: 8.x
 package: Menu
 dependencies:
